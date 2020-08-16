@@ -10,8 +10,6 @@ import (
 	"gopkg.in/redis.v3"
 )
 
-const namespace = "crm_service_resque"
-
 type exporter struct {
 	config         *Config
 	mut            sync.Mutex
@@ -26,55 +24,59 @@ type exporter struct {
 	timer          *time.Timer
 }
 
-func newExporter(config *Config) (*exporter, error) {
-	e := &exporter{
-		config: config,
-		queueStatus: prometheus.NewGaugeVec(
-			prometheus.GaugeOpts{
-				Namespace: namespace,
-				Name:      "jobs_in_queue",
-				Help:      "Number of remained jobs in queue",
-			},
-			[]string{"queue_name"},
-		),
-		processed: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "processed",
-			Help:      "Number of processed jobs",
-		}),
-		failedQueue: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "failed_queue_count",
-			Help:      "Number of jobs in the failed queue",
-		}),
-		failedTotal: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "failed",
-			Help:      "Number of failed jobs",
-		}),
-		scrapeFailures: prometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: namespace,
-			Name:      "exporter_scrape_failures_total",
-			Help:      "Number of errors while scraping resque.",
-		}),
-		totalWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "total_workers",
-			Help:      "Number of workers",
-		}),
-		activeWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "active_workers",
-			Help:      "Number of active workers",
-		}),
-		idleWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "idle_workers",
-			Help:      "Number of idle workers",
-		}),
+func newExporter(config *Config) ([]*exporter, error) {
+	namespace := [...]string{"crm_resque", "de_resque", "ss_resque", "cmt_resque", "aft_store_resque", "wms_resque", "oms_resque", "vengage_resque", "aft_resque", "sc_resque", "vigeon_resque"}
+	f := []*exporter{}
+	for _, s := range namespace {
+		e := &exporter{
+			config: config,
+			queueStatus: prometheus.NewGaugeVec(
+				prometheus.GaugeOpts{
+					Namespace: s,
+					Name:      "jobs_in_queue",
+					Help:      "Number of remained jobs in queue",
+				},
+				[]string{"queue_name"},
+			),
+			processed: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "processed",
+				Help:      "Number of processed jobs",
+			}),
+			failedQueue: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "failed_queue_count",
+				Help:      "Number of jobs in the failed queue",
+			}),
+			failedTotal: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "failed",
+				Help:      "Number of failed jobs",
+			}),
+			scrapeFailures: prometheus.NewCounter(prometheus.CounterOpts{
+				Namespace: s,
+				Name:      "exporter_scrape_failures_total",
+				Help:      "Number of errors while scraping resque.",
+			}),
+			totalWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "total_workers",
+				Help:      "Number of workers",
+			}),
+			activeWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "active_workers",
+				Help:      "Number of active workers",
+			}),
+			idleWorkers: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: s,
+				Name:      "idle_workers",
+				Help:      "Number of idle workers",
+			}),
+		}
+		f = append(f,e)
 	}
-
-	return e, nil
+	return f, nil
 }
 
 func (e *exporter) Describe(ch chan<- *prometheus.Desc) {

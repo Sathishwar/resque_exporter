@@ -62,7 +62,10 @@ func Run(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	prometheus.MustRegister(exporter)
+	for _, s := range exporter {
+		prometheus.MustRegister(s)
+	}
+	
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`

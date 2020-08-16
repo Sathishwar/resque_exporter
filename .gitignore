@@ -1,0 +1,6 @@
+bin/*
+!bin/.gitkeep
+devtools/*
+!devtools/.gitkeep
+/vendor/
+resque_exporter
