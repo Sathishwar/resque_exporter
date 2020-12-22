@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	GuardIntervalMillis int64        `yaml:"guard_interval_millis"`
-	ResqueNamespace     string       `yaml:"resque_namespace"`
+	ResqueNamespace     *ResqueNamespaceConfig       `yaml:"resque_namespace"`
 	Redis               *RedisConfig `yaml:"redis"`
 }
 
@@ -18,6 +18,10 @@ type RedisConfig struct {
 	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
 	DB       int64  `yaml:"db"`
+}
+
+type ResqueNamespaceConfig struct {
+	Namespace []string `yaml:"namespace"`
 }
 
 func loadConfig(configPath string) (*Config, error) {

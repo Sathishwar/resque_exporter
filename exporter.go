@@ -12,6 +12,7 @@ import (
 
 type exporter struct {
 	config         *Config
+	resqueNamespace string
 	mut            sync.Mutex
 	scrapeFailures prometheus.Counter
 	processed      prometheus.Gauge
@@ -25,11 +26,12 @@ type exporter struct {
 }
 
 func newExporter(config *Config) ([]*exporter, error) {
-	namespace := [...]string{"crm_resque", "de_resque", "ss_resque", "cmt_resque", "aft_store_resque", "wms_resque", "oms_resque", "vengage_resque", "aft_resque", "sc_resque", "vigeon_resque"}
+	namespace := config.ResqueNamespace.Namespace
 	f := []*exporter{}
 	for _, s := range namespace {
 		e := &exporter{
 			config: config,
+			resqueNamespace: s,
 			queueStatus: prometheus.NewGaugeVec(
 				prometheus.GaugeOpts{
 					Namespace: s,
@@ -74,7 +76,7 @@ func newExporter(config *Config) ([]*exporter, error) {
 				Help:      "Number of idle workers",
 			}),
 		}
-		f = append(f,e)
+		f = append(f, e)
 	}
 	return f, nil
 }
@@ -113,8 +115,7 @@ func (e *exporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (e *exporter) collect(ch chan<- prometheus.Metric) error {
-	resqueNamespace := e.config.ResqueNamespace
-
+	resqueNamespace := e.resqueNamespace
 	redisConfig := e.config.Redis
 	redisOpt := &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),
