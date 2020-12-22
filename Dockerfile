@@ -10,4 +10,4 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build cmd/resque_exporter/resque_ex
 
 EXPOSE 5555
 
-CMD [./resque_exporter --config config.yaml]
+CMD ["./resque_exporter","--config","config.yaml"]
